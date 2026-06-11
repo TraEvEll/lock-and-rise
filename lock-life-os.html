@@ -952,6 +952,7 @@ textarea.journal-input::placeholder { color: var(--muted); font-style: italic; }
     <div class="key-box-title">Lock & Rise</div>
     <div class="key-box-sub">Paste your Anthropic API key to get started.<br>It's saved on this device only — used to power the Coming Together report.</div>
     <input class="key-input" id="keyInput" type="password" placeholder="sk-ant-..." />
+    <div id="keyError" style="color:#c4440a;font-size:0.75rem;margin-bottom:0.6rem;min-height:1rem;"></div>
     <div class="key-hint">Get your key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys<br>Stored locally on this device only</div>
     <button class="btn-key" onclick="saveKey()">Enter</button>
   </div>
@@ -1126,8 +1127,8 @@ textarea.journal-input::placeholder { color: var(--muted); font-style: italic; }
 // ── API KEY ──────────────────────────────────────────────────────────────
 function saveKey() {
   const val = document.getElementById('keyInput').value.trim();
-  if (!val.startsWith('sk-ant-')) {
-    document.getElementById('keyInput').style.borderTopColor = '#c4440a';
+  if (!val || val.length < 20) {
+    document.getElementById('keyError').textContent = 'Please paste your full API key.';
     return;
   }
   localStorage.setItem('lockrise_api_key', val);
