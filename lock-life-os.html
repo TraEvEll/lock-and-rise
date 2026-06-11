@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lock & Rise — The Lock Family Life OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Instrument+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #0d0f14;
+  --deep: #161920;
+  --surface: #1e2230;
+  --raised: #252a3a;
+  --border: rgba(255,255,255,0.07);
+  --muted: #6b7280;
+  --soft: #9ca3af;
+  --text: #e8eaf0;
+  --heading: #f4f5f8;
+  --gold: #d4a843;
+  --gold-dim: rgba(212,168,67,0.15);
+  --gold-line: rgba(212,168,67,0.3);
+  --tracy: #7c9fd4;
+  --tracy-dim: rgba(124,159,212,0.12);
+  --stu: #74b896;
+  --stu-dim: rgba(116,184,150,0.12);
+  --accent: #c4440a;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--night);
+  color: var(--text);
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── STAR FIELD ── */
+.starfield {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--d, 4s) infinite ease-in-out var(--delay, 0s);
+}
+@keyframes twinkle {
+  0%,100% { opacity: var(--min-op, 0.1); }
+  50% { opacity: var(--max-op, 0.6); }
+}
+
+/* ── SCREENS ── */
+.screen { display:none; min-height:100vh; position:relative; z-index:1; }
+.screen.active { display:flex; flex-direction:column; }
+
+/* ── LOGIN ── */
+#loginScreen {
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.login-wrap {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.logo-mark {
+  width: 72px; height: 72px;
+  border: 1px solid var(--gold-line);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  background: var(--gold-dim);
+  font-size: 1.8rem;
+}
+
+.app-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-weight: 400;
+  color: var(--heading);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.3rem;
+}
+
+.app-tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2.5rem;
+  opacity: 0.8;
+}
+
+.profile-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+}
+.profile-card:hover { transform: translateY(-2px); }
+.profile-card.tracy-card:hover { border-color: var(--tracy); background: var(--tracy-dim); }
+.profile-card.stu-card:hover { border-color: var(--stu); background: var(--stu-dim); }
+
+.profile-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin: 0 auto 0.8rem;
+}
+.tracy-card .profile-avatar { background: var(--tracy-dim); border: 1px solid var(--tracy); }
+.stu-card .profile-avatar { background: var(--stu-dim); border: 1px solid var(--stu); }
+
+.profile-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--heading);
+  margin-bottom: 0.2rem;
+}
+.profile-role {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── MAIN APP ── */
+#appScreen { padding-bottom: 5rem; }
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(13,15,20,0.92);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.user-pip {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+.user-pip.tracy { background: var(--tracy-dim); border: 1px solid var(--tracy); }
+.user-pip.stu { background: var(--stu-dim); border: 1px solid var(--stu); }
+
+.top-bar-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--heading);
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.btn-sm {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--soft);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-sm:hover { border-color: var(--gold-line); color: var(--gold); }
+
+/* ── MONTH BANNER ── */
+.month-banner {
+  margin: 1.5rem 1.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.month-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.month-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+}
+
+.month-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--heading);
+  margin-bottom: 0.3rem;
+}
+
+.month-theme-name {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+}
+
+.month-desc {
+  font-size: 0.85rem;
+  color: var(--soft);
+  line-height: 1.6;
+}
+
+.month-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.month-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--raised);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.month-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), rgba(212,168,67,0.4));
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.month-progress-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* ── REALM GRID ── */
+.section-header {
+  padding: 0 1.4rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.realm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+  padding: 0 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.realm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.realm-card:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.14); }
+.realm-card.active-realm { border-color: var(--gold-line); }
+
+.realm-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--realm-color, var(--gold));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.realm-card.active-realm::after { opacity: 1; }
+
+.realm-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+.realm-name {
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--heading);
+  margin-bottom: 0.4rem;
+}
+
+.realm-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.realm-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--raised);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.realm-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(.4,0,.2,1);
+}
+.realm-score {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+}
+
+/* ── JOURNAL ── */
+.journal-section {
+  padding: 0 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.journal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.journal-header {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.journal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  color: var(--heading);
+  font-style: italic;
+}
+
+.journal-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+textarea.journal-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 1.1rem 1.2rem;
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 300;
+  font-size: 0.92rem;
+  color: var(--text);
+  line-height: 1.75;
+  resize: none;
+  min-height: 130px;
+  outline: none;
+}
+textarea.journal-input::placeholder { color: var(--muted); font-style: italic; }
+
+.journal-footer {
+  padding: 0.7rem 1.2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.realm-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  background: var(--gold-dim);
+  color: var(--gold);
+  border: 1px solid var(--gold-line);
+}
+
+.btn-save {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--night);
+  border: none;
+  cursor: pointer;
+  font-weight: 400;
+  transition: all 0.2s;
+}
+.btn-save:hover { background: #e0b84e; }
+
+/* ── PAST ENTRIES ── */
+.entries-list {
+  padding: 0 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.entry-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.entry-item:hover { border-color: rgba(255,255,255,0.14); }
+
+.entry-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.entry-realm-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.entry-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--muted);
+}
+.entry-preview {
+  font-size: 0.85rem;
+  color: var(--soft);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── COMING TOGETHER ── */
+#togetherScreen { padding: 1.4rem 1.4rem 5rem; }
+
+.together-header {
+  text-align: center;
+  padding: 2rem 0 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.together-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-style: italic;
+  color: var(--heading);
+  margin-bottom: 0.3rem;
+}
+
+.together-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.8;
+}
+
+.together-profiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.together-profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+.together-profile-card.tracy-p { border-top: 2px solid var(--tracy); }
+.together-profile-card.stu-p { border-top: 2px solid var(--stu); }
+
+.together-profile-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+  color: var(--heading);
+  margin-bottom: 0.5rem;
+}
+
+.together-entry-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.together-entry-count span {
+  color: var(--gold);
+  font-size: 1rem;
+  font-family: 'Playfair Display', serif;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.btn-generate {
+  width: 100%;
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-style: italic;
+  padding: 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--gold-dim), rgba(212,168,67,0.08));
+  color: var(--gold);
+  border: 1px solid var(--gold-line);
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-bottom: 1.5rem;
+}
+.btn-generate:hover { background: var(--gold-dim); }
+.btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.report-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: none;
+}
+
+.report-box.visible { display: block; animation: fadeSlideIn 0.5s ease; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.report-header {
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--gold-dim);
+}
+
+.report-header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--gold);
+}
+
+.report-content {
+  padding: 1.2rem;
+  font-size: 0.9rem;
+  color: var(--soft);
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(13,15,20,0.96);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.8rem 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-icon { font-size: 1.1rem; }
+
+.nav-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.nav-btn.active .nav-label { color: var(--gold); }
+.nav-btn.active .nav-icon { filter: brightness(1.3); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 5.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--raised);
+  border: 1px solid var(--gold-line);
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 300;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── REALM MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 400;
+  align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal-sheet {
+  background: var(--deep);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 1.5rem 1.4rem 3rem;
+  width: 100%;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 36px; height: 3px;
+  background: var(--muted);
+  border-radius: 2px;
+  margin: 0 auto 1.2rem;
+  opacity: 0.4;
+}
+
+.modal-realm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.modal-realm-icon { font-size: 1.8rem; }
+
+.modal-realm-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: var(--heading);
+}
+
+.rate-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+}
+
+.rate-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.rate-btn {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--soft);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rate-btn:hover, .rate-btn.selected {
+  border-color: var(--gold-line);
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+
+.btn-modal-save {
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.85rem;
+  border-radius: 10px;
+  background: var(--gold);
+  color: var(--night);
+  border: none;
+  cursor: pointer;
+  font-weight: 400;
+  transition: all 0.2s;
+}
+.btn-modal-save:hover { background: #e0b84e; }
+
+/* ── YEAR VIEW ── */
+#yearScreen { padding: 1.4rem 1.4rem 5rem; }
+
+.year-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-style: italic;
+  color: var(--heading);
+  margin-bottom: 0.3rem;
+}
+.year-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
+.months-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+}
+
+.month-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.8rem 0.7rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.month-tile:hover { border-color: rgba(255,255,255,0.14); }
+.month-tile.current-month { border-color: var(--gold-line); }
+
+.month-tile-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.2rem;
+}
+.month-tile-name {
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--heading);
+  margin-bottom: 0.2rem;
+}
+.month-tile-theme {
+  font-size: 0.62rem;
+  color: var(--gold);
+  font-style: italic;
+}
+.month-tile-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  position: absolute;
+  top: 0.5rem; right: 0.5rem;
+  display: none;
+}
+.month-tile.has-entries .month-tile-dot { display: block; }
+
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.loading-dots span {
+  width: 5px; height: 5px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: dot-pulse 1.4s infinite ease-in-out;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-pulse {
+  0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ── API KEY GATE ── */
+.key-gate {
+  position: fixed;
+  inset: 0;
+  background: var(--night);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.key-gate.hidden { display: none; }
+.key-box {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+.key-box-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-style: italic;
+  color: var(--heading);
+  margin-bottom: 0.5rem;
+}
+.key-box-sub {
+  font-size: 0.85rem;
+  color: var(--soft);
+  line-height: 1.65;
+  margin-bottom: 1.8rem;
+}
+.key-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  padding: 0.85rem 1rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text);
+  outline: none;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.8rem;
+  border-radius: 4px;
+}
+.key-input::placeholder { color: var(--muted); }
+.key-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.56rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+  line-height: 1.7;
+}
+.key-hint a { color: var(--gold); text-decoration: none; }
+.btn-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.8rem;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--night);
+  border: none;
+  cursor: pointer;
+  font-weight: 400;
+  transition: all 0.2s;
+}
+.btn-key:hover { background: #e0b84e; }
+</style>
+</head>
+<body>
+
+<!-- API Key Gate -->
+<div class="key-gate" id="keyGate">
+  <div class="key-box">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">✦</div>
+    <div class="key-box-title">Lock & Rise</div>
+    <div class="key-box-sub">Paste your Anthropic API key to get started.<br>It's saved on this device only — used to power the Coming Together report.</div>
+    <input class="key-input" id="keyInput" type="password" placeholder="sk-ant-..." />
+    <div class="key-hint">Get your key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys<br>Stored locally on this device only</div>
+    <button class="btn-key" onclick="saveKey()">Enter</button>
+  </div>
+</div>
+
+<!-- Stars -->
+<div class="starfield" id="starfield"></div>
+
+<!-- LOGIN -->
+<div class="screen active" id="loginScreen">
+  <div class="login-wrap">
+    <div class="logo-mark">✦</div>
+    <div class="app-title">Lock & Rise</div>
+    <div class="app-tagline">The Lock Family Life OS</div>
+    <div class="profile-cards">
+      <div class="profile-card tracy-card" onclick="login('tracy')">
+        <div class="profile-avatar">🌙</div>
+        <div class="profile-name">Tracy</div>
+        <div class="profile-role">Her chapter</div>
+      </div>
+      <div class="profile-card stu-card" onclick="login('stu')">
+        <div class="profile-avatar">⚡</div>
+        <div class="profile-name">Stu</div>
+        <div class="profile-role">His chapter</div>
+      </div>
+    </div>
+    <div style="font-size:0.75rem; color:var(--muted); font-style:italic; line-height:1.5;">
+      Your journal is yours alone.<br>You choose what to share at your coming together sessions.
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="screen" id="appScreen">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="user-pip" id="topPip">🌙</div>
+      <div class="top-bar-name" id="topName">Tracy</div>
+    </div>
+    <div class="top-bar-right">
+      <button class="btn-sm" onclick="logout()">Switch</button>
+    </div>
+  </div>
+
+  <!-- Month Banner -->
+  <div class="month-banner" id="monthBanner">
+    <div class="month-eyebrow">This month's focus</div>
+    <div class="month-title" id="monthTitle">June</div>
+    <div class="month-theme-name" id="monthThemeName">Relationships</div>
+    <div class="month-desc" id="monthDesc">The people around you shape everything. This month, notice what your relationships reveal about you — not them.</div>
+    <div class="month-progress-row">
+      <div class="month-progress-bar">
+        <div class="month-progress-fill" id="monthProgress" style="width:33%"></div>
+      </div>
+      <div class="month-progress-label" id="monthProgressLabel">10 / 30 days</div>
+    </div>
+  </div>
+
+  <!-- Realms -->
+  <div style="margin-bottom:1rem;">
+    <div class="section-header">
+      <span class="section-label">Your realms</span>
+      <span class="section-label" style="color:var(--gold);" id="totalScore">0 / 70</span>
+    </div>
+    <div class="realm-grid" id="realmGrid"></div>
+  </div>
+
+  <!-- Journal -->
+  <div class="journal-section">
+    <div class="section-header" style="margin-bottom:0.8rem;">
+      <span class="section-label">Today's entry</span>
+    </div>
+    <div class="journal-box">
+      <div class="journal-header">
+        <div class="journal-title" id="journalPrompt">What's worth noting today?</div>
+        <div class="journal-date" id="journalDate"></div>
+      </div>
+      <textarea class="journal-input" id="journalInput" placeholder="Write anything. Something that happened, something you noticed, something you're sitting with..."></textarea>
+      <div class="journal-footer">
+        <span class="realm-tag" id="activeRealmTag">All realms</span>
+        <button class="btn-save" onclick="saveEntry()">Save entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Past entries -->
+  <div>
+    <div class="section-header">
+      <span class="section-label">This month</span>
+    </div>
+    <div class="entries-list" id="entriesList"></div>
+  </div>
+</div>
+
+<!-- COMING TOGETHER -->
+<div class="screen" id="togetherScreen">
+  <div class="together-header">
+    <div class="together-title">Coming Together</div>
+    <div class="together-sub">Monthly · Quarterly · Year End</div>
+  </div>
+
+  <div class="together-profiles">
+    <div class="together-profile-card tracy-p">
+      <div class="together-profile-name">Tracy</div>
+      <div class="together-entry-count">
+        <span id="tracyEntryCount">0</span>
+        entries this month
+      </div>
+    </div>
+    <div class="together-profile-card stu-p">
+      <div class="together-profile-name">Stu</div>
+      <div class="together-entry-count">
+        <span id="stuEntryCount">0</span>
+        entries this month
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-generate" id="generateBtn" onclick="generateReport()">
+    ✦ Generate this month's coming together report
+  </button>
+
+  <div class="report-box" id="reportBox">
+    <div class="report-header">
+      <div class="report-header-title" id="reportTitle">June · Relationships</div>
+    </div>
+    <div class="report-content" id="reportContent"></div>
+  </div>
+</div>
+
+<!-- YEAR VIEW -->
+<div class="screen" id="yearScreen">
+  <div class="year-title">The Year</div>
+  <div class="year-sub">Your calendar of themes</div>
+  <div class="months-grid" id="monthsGrid"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottomNav" style="display:none;">
+  <button class="nav-btn active" onclick="showTab('app')" id="nav-app">
+    <span class="nav-icon">✦</span>
+    <span class="nav-label">Today</span>
+  </button>
+  <button class="nav-btn" onclick="showTab('year')" id="nav-year">
+    <span class="nav-icon">◎</span>
+    <span class="nav-label">Year</span>
+  </button>
+  <button class="nav-btn" onclick="showTab('together')" id="nav-together">
+    <span class="nav-icon">♾</span>
+    <span class="nav-label">Together</span>
+  </button>
+</div>
+
+<!-- REALM MODAL -->
+<div class="modal-overlay" id="realmModal" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-realm-header">
+      <div class="modal-realm-icon" id="modalIcon">🧠</div>
+      <div class="modal-realm-name" id="modalName">Mind</div>
+    </div>
+    <div class="rate-label">How are you in this area right now? (1–10)</div>
+    <div class="rate-buttons" id="rateButtons"></div>
+    <button class="btn-modal-save" onclick="saveRealm()">Save rating</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── API KEY ──────────────────────────────────────────────────────────────
+function saveKey() {
+  const val = document.getElementById('keyInput').value.trim();
+  if (!val.startsWith('sk-ant-')) {
+    document.getElementById('keyInput').style.borderTopColor = '#c4440a';
+    return;
+  }
+  localStorage.setItem('lockrise_api_key', val);
+  document.getElementById('keyGate').classList.add('hidden');
+}
+
+function getKey() {
+  return localStorage.getItem('lockrise_api_key');
+}
+
+if (getKey()) {
+  document.getElementById('keyGate').classList.add('hidden');
+}
+
+document.getElementById('keyInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveKey();
+});
+
+// ── DATA ──────────────────────────────────────────────────────────────
+const MONTH_THEMES = [
+  { month: 'January',   theme: 'Vision',        desc: 'Where are you headed? What do you want this year to feel like — not just achieve?' },
+  { month: 'February',  theme: 'Relationships',  desc: 'The people around you shape everything. Who is lifting you up, and who are you lifting?' },
+  { month: 'March',     theme: 'Health',         desc: 'Energy is the foundation. How is your body, and what is it telling you?' },
+  { month: 'April',     theme: 'Business',       desc: 'Your work. What is working, what is draining you, and what does the business need from you right now?' },
+  { month: 'May',       theme: 'Mind',           desc: 'Your inner landscape — thoughts, patterns, beliefs. What story are you running on?' },
+  { month: 'June',      theme: 'Relationships',  desc: 'The people around you shape everything. Notice what your relationships reveal about you — not them.' },
+  { month: 'July',      theme: 'Family',         desc: 'Home and the people in it. What does your family need, and what do you need from it?' },
+  { month: 'August',    theme: 'Growth',         desc: 'Where have you surprised yourself? Where are you playing small?' },
+  { month: 'September', theme: 'Finances',       desc: 'Money is information. What is yours telling you about what you value — and what you fear?' },
+  { month: 'October',   theme: 'Business',       desc: 'End of year stretch. What needs attention before the year closes?' },
+  { month: 'November',  theme: 'Spirit',         desc: 'The part of you that is not a role. When did you last feel fully yourself?' },
+  { month: 'December',  theme: 'Reflection',     desc: 'A year done. Look back with honesty, not judgement. What happened, and what does it mean?' }
+];
+
+const REALMS = [
+  { id: 'mind',     name: 'Mind',          icon: '🧠', color: '#8b7fd4' },
+  { id: 'body',     name: 'Body',          icon: '⚡', color: '#74b896' },
+  { id: 'spirit',   name: 'Spirit',        icon: '🌙', color: '#d4a843' },
+  { id: 'business', name: 'Business',      icon: '🔧', color: '#7c9fd4' },
+  { id: 'finances', name: 'Finances',      icon: '◈',  color: '#c4440a' },
+  { id: 'health',   name: 'Health',        icon: '✦',  color: '#74b896' },
+  { id: 'relations',name: 'Relationships', icon: '♾',  color: '#d47c8b' },
+  { id: 'family',   name: 'Family',        icon: '⌂',  color: '#d4c143' },
+  { id: 'growth',   name: 'Growth',        icon: '◎',  color: '#a3d474' }
+];
+
+const JOURNAL_PROMPTS = [
+  "What's worth noting today?",
+  "What felt hard today, and why?",
+  "What did you notice about yourself this week?",
+  "Where did you feel most like yourself recently?",
+  "What are you avoiding, and what does that tell you?",
+  "What would you tell yourself six months ago?",
+  "What is the business asking of you right now?",
+  "What does your body know that your mind hasn't caught up with?",
+  "What are you grateful for that you haven't said out loud?",
+  "What conversation do you keep not having?"
+];
+
+let state = {
+  currentUser: null,
+  data: JSON.parse(localStorage.getItem('lockrise_data') || '{"tracy":{"realms":{},"entries":[]},"stu":{"realms":{},"entries":[]}}'),
+  activeRealm: null,
+  selectedRating: null
+};
+
+function saveState() {
+  localStorage.setItem('lockrise_data', JSON.stringify(state.data));
+}
+
+// ── STARS ──────────────────────────────────────────────────────────────
+function initStars() {
+  const sf = document.getElementById('starfield');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --d:${3+Math.random()*5}s;
+      --delay:-${Math.random()*5}s;
+      --min-op:${0.05+Math.random()*0.1};
+      --max-op:${0.3+Math.random()*0.5};
+    `;
+    sf.appendChild(s);
+  }
+}
+initStars();
+
+// ── LOGIN ──────────────────────────────────────────────────────────────
+function login(user) {
+  state.currentUser = user;
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  document.getElementById('bottomNav').style.display = 'flex';
+
+  const pip = document.getElementById('topPip');
+  pip.textContent = user === 'tracy' ? '🌙' : '⚡';
+  pip.className = `user-pip ${user}`;
+  document.getElementById('topName').textContent = user === 'tracy' ? 'Tracy' : 'Stu';
+
+  renderApp();
+  showTab('app');
+}
+
+function logout() {
+  state.currentUser = null;
+  ['appScreen','togetherScreen','yearScreen'].forEach(s => document.getElementById(s).classList.remove('active'));
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('bottomNav').style.display = 'none';
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────
+function showTab(tab) {
+  ['appScreen','togetherScreen','yearScreen'].forEach(s => document.getElementById(s).classList.remove('active'));
+  ['nav-app','nav-year','nav-together'].forEach(n => document.getElementById(n).classList.remove('active'));
+
+  document.getElementById(tab === 'app' ? 'appScreen' : tab === 'year' ? 'yearScreen' : 'togetherScreen').classList.add('active');
+  document.getElementById('nav-' + (tab === 'app' ? 'app' : tab === 'year' ? 'year' : 'together')).classList.add('active');
+
+  if (tab === 'together') renderTogether();
+  if (tab === 'year') renderYear();
+}
+
+// ── MONTH ──────────────────────────────────────────────────────────────
+function getCurrentMonthData() {
+  const now = new Date();
+  return MONTH_THEMES[now.getMonth()];
+}
+
+function renderMonthBanner() {
+  const now = new Date();
+  const m = MONTH_THEMES[now.getMonth()];
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const day = now.getDate();
+  const pct = Math.round((day / daysInMonth) * 100);
+
+  document.getElementById('monthTitle').textContent = m.month;
+  document.getElementById('monthThemeName').textContent = m.theme;
+  document.getElementById('monthDesc').textContent = m.desc;
+  document.getElementById('monthProgress').style.width = pct + '%';
+  document.getElementById('monthProgressLabel').textContent = `${day} / ${daysInMonth} days`;
+}
+
+// ── REALMS ──────────────────────────────────────────────────────────────
+function renderRealms() {
+  const grid = document.getElementById('realmGrid');
+  const userData = state.data[state.currentUser];
+  grid.innerHTML = '';
+  let total = 0;
+
+  REALMS.forEach(r => {
+    const score = userData.realms[r.id] || 0;
+    total += score;
+    const pct = (score / 10) * 100;
+
+    const card = document.createElement('div');
+    card.className = 'realm-card';
+    card.style.setProperty('--realm-color', r.color);
+    card.innerHTML = `
+      <div class="realm-icon">${r.icon}</div>
+      <div class="realm-name">${r.name}</div>
+      <div class="realm-bar-wrap">
+        <div class="realm-bar"><div class="realm-bar-fill" style="width:${pct}%;background:${r.color}"></div></div>
+        <div class="realm-score">${score}/10</div>
+      </div>
+    `;
+    card.onclick = () => openRealmModal(r);
+    grid.appendChild(card);
+  });
+
+  document.getElementById('totalScore').textContent = `${total} / ${REALMS.length * 10}`;
+}
+
+function openRealmModal(realm) {
+  state.activeRealm = realm;
+  state.selectedRating = state.data[state.currentUser].realms[realm.id] || null;
+
+  document.getElementById('modalIcon').textContent = realm.icon;
+  document.getElementById('modalName').textContent = realm.name;
+
+  const btns = document.getElementById('rateButtons');
+  btns.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const b = document.createElement('button');
+    b.className = 'rate-btn' + (state.selectedRating === i ? ' selected' : '');
+    b.textContent = i;
+    b.onclick = () => {
+      document.querySelectorAll('.rate-btn').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      state.selectedRating = i;
+    };
+    btns.appendChild(b);
+  }
+
+  document.getElementById('realmModal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('realmModal')) {
+    document.getElementById('realmModal').classList.remove('open');
+  }
+}
+
+function saveRealm() {
+  if (!state.selectedRating) return;
+  state.data[state.currentUser].realms[state.activeRealm.id] = state.selectedRating;
+  saveState();
+  renderRealms();
+  document.getElementById('realmModal').classList.remove('open');
+  showToast('Realm updated ✦');
+}
+
+// ── JOURNAL ──────────────────────────────────────────────────────────────
+function renderJournal() {
+  const now = new Date();
+  const opts = { weekday:'long', day:'numeric', month:'long' };
+  document.getElementById('journalDate').textContent = now.toLocaleDateString('en-GB', opts);
+
+  const prompt = JOURNAL_PROMPTS[now.getDate() % JOURNAL_PROMPTS.length];
+  document.getElementById('journalPrompt').textContent = prompt;
+
+  const m = getCurrentMonthData();
+  document.getElementById('activeRealmTag').textContent = m.theme;
+}
+
+function saveEntry() {
+  const text = document.getElementById('journalInput').value.trim();
+  if (!text) return;
+
+  const entry = {
+    id: Date.now(),
+    text,
+    date: new Date().toISOString(),
+    theme: getCurrentMonthData().theme,
+    month: new Date().getMonth()
+  };
+
+  state.data[state.currentUser].entries.unshift(entry);
+  saveState();
+  document.getElementById('journalInput').value = '';
+  renderEntries();
+  showToast('Entry saved ✦');
+}
+
+function renderEntries() {
+  const list = document.getElementById('entriesList');
+  const currentMonth = new Date().getMonth();
+  const entries = state.data[state.currentUser].entries.filter(e => e.month === currentMonth);
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:1.5rem;font-size:0.82rem;color:var(--muted);font-style:italic;">No entries yet this month.</div>';
+    return;
+  }
+
+  list.innerHTML = entries.slice(0, 5).map(e => {
+    const d = new Date(e.date);
+    const dateStr = d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    return `
+      <div class="entry-item">
+        <div class="entry-meta">
+          <span class="entry-realm-tag">${e.theme}</span>
+          <span class="entry-date">${dateStr}</span>
+        </div>
+        <div class="entry-preview">${e.text}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── COMING TOGETHER ──────────────────────────────────────────────────────
+function renderTogether() {
+  const currentMonth = new Date().getMonth();
+  const te = state.data.tracy.entries.filter(e => e.month === currentMonth).length;
+  const se = state.data.stu.entries.filter(e => e.month === currentMonth).length;
+  document.getElementById('tracyEntryCount').textContent = te;
+  document.getElementById('stuEntryCount').textContent = se;
+  const m = getCurrentMonthData();
+  document.getElementById('reportTitle').textContent = `${m.month} · ${m.theme}`;
+}
+
+async function generateReport() {
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+
+  const currentMonth = new Date().getMonth();
+  const m = MONTH_THEMES[currentMonth];
+
+  const tracyEntries = state.data.tracy.entries.filter(e => e.month === currentMonth);
+  const stuEntries = state.data.stu.entries.filter(e => e.month === currentMonth);
+  const tracyRealms = state.data.tracy.realms;
+  const stuRealms = state.data.stu.realms;
+
+  const tracyText = tracyEntries.length
+    ? tracyEntries.map(e => e.text).join('\n\n')
+    : 'No entries recorded this month.';
+
+  const stuText = stuEntries.length
+    ? stuEntries.map(e => e.text).join('\n\n')
+    : 'No entries recorded this month.';
+
+  const realmSummary = REALMS.map(r =>
+    `${r.name}: Tracy ${tracyRealms[r.id] || '–'}/10, Stu ${stuRealms[r.id] || '–'}/10`
+  ).join('\n');
+
+  const prompt = `You are a thoughtful facilitator helping Tracy and Stu Lock, a married couple who run a family business together (Motorcare, an auto repair garage in the UK), have a meaningful monthly check-in conversation.
+
+This month's theme is: ${m.theme}
+Month: ${m.month}
+
+Tracy's journal entries this month:
+${tracyText}
+
+Stu's journal entries this month:
+${stuText}
+
+Realm scores (self-rated 1-10):
+${realmSummary}
+
+Create a Coming Together report for them. It should include:
+
+1. A brief, honest synthesis of what each person seems to be sitting with this month (2-3 sentences each, written warmly but directly — not therapy-speak)
+2. 3-4 genuine questions for them to discuss together — questions that emerge from what they've actually written, that might spark real conversation, surface things they haven't said to each other, or help them see where they're aligned or diverging
+3. One "year so far" observation if anything meaningful stands out across their combined picture
+
+Write in plain British English. Warm but direct. No bullet points — prose only. No preamble, no "great work", no filler. Treat them as intelligent adults who want honest reflection, not affirmation.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': getKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || 'Unable to generate report. Please try again.';
+
+    const box = document.getElementById('reportBox');
+    document.getElementById('reportContent').textContent = text;
+    box.classList.add('visible');
+
+  } catch(err) {
+    document.getElementById('reportContent').textContent = 'Something went wrong generating the report. Check your connection and try again.';
+    document.getElementById('reportBox').classList.add('visible');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✦ Regenerate report';
+}
+
+// ── YEAR ──────────────────────────────────────────────────────────────
+function renderYear() {
+  const grid = document.getElementById('monthsGrid');
+  const currentMonth = new Date().getMonth();
+  grid.innerHTML = '';
+
+  MONTH_THEMES.forEach((m, i) => {
+    const tracyHas = state.data.tracy.entries.some(e => e.month === i);
+    const stuHas = state.data.stu.entries.some(e => e.month === i);
+    const hasEntries = tracyHas || stuHas;
+
+    const tile = document.createElement('div');
+    tile.className = 'month-tile' + (i === currentMonth ? ' current-month' : '') + (hasEntries ? ' has-entries' : '');
+    tile.innerHTML = `
+      <div class="month-tile-dot"></div>
+      <div class="month-tile-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="month-tile-name">${m.month.slice(0,3)}</div>
+      <div class="month-tile-theme">${m.theme}</div>
+    `;
+    grid.appendChild(tile);
+  });
+}
+
+// ── APP RENDER ──────────────────────────────────────────────────────────
+function renderApp() {
+  renderMonthBanner();
+  renderRealms();
+  renderJournal();
+  renderEntries();
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
